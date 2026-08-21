@@ -13,8 +13,9 @@ final class Suscripcion: ObservableObject {
 
     enum ID {
         static let anual   = "app.nubi.premium.anual"
+        static let trimestral = "app.nubi.premium.trimestral"
         static let mensual = "app.nubi.premium.mensual"
-        static let todos   = [anual, mensual]
+        static let todos      = [anual, trimestral, mensual]
     }
 
     @Published private(set) var productos: [Product] = []
@@ -92,24 +93,51 @@ final class Suscripcion: ObservableObject {
     }
 
     func precioMensualizado(_ producto: Product) -> String? {
-        guard let sub = producto.subscription, sub.subscriptionPeriod.unit == .year else { return nil }
-        let meses = Decimal(12 * sub.subscriptionPeriod.value)
+        guard let sub = producto.subscription else { return nil }
+        
+        let meses: Decimal
+        switch sub.subscriptionPeriod.unit {
+        case .year:
+            meses = Decimal(12 * sub.subscriptionPeriod.value)
+        case .month:
+            // Solo mostrar "sale a X/mes" si dura más de 1 mes
+            guard sub.subscriptionPeriod.value > 1 else { return nil }
+            meses = Decimal(sub.subscriptionPeriod.value)
+        default:
+            return nil
+        }
+        
         let porMes = producto.price / meses
         return porMes.formatted(producto.priceFormatStyle) + "/mes"
     }
 
     func ahorroAnual(_ producto: Product) -> Int? {
         guard producto.subscription?.subscriptionPeriod.unit == .year,
-              let mensual = productos.first(where: { $0.subscription?.subscriptionPeriod.unit == .month }),
-              mensual.price > 0
+            let mensual = productos.first(where: { $0.subscription?.subscriptionPeriod.unit == .month }),
+            mensual.price > 0
         else { return nil }
-
         let coste12Meses = mensual.price * 12
         guard coste12Meses > producto.price else { return nil }
-
         let ratio = (coste12Meses - producto.price) / coste12Meses * 100
         let pct = Int(NSDecimalNumber(decimal: ratio).doubleValue.rounded())
         return pct >= 10 ? pct : nil
+    }
+    
+    /// Ahorro del trimestral vs mensual
+    func ahorroTrimestral(_ producto: Product) -> Int? {
+        guard producto.subscription?.subscriptionPeriod.unit == .month,
+            producto.subscription?.subscriptionPeriod.value == 3,
+            let mensual = productos.first(where: { 
+                $0.subscription?.subscriptionPeriod.unit == .month && 
+                $0.subscription?.subscriptionPeriod.value == 1 
+            }),
+            mensual.price > 0
+        else { return nil }
+        let coste3Meses = mensual.price * 3
+        guard coste3Meses > producto.price else { return nil }
+        let ratio = (coste3Meses - producto.price) / coste3Meses * 100
+        let pct = Int(NSDecimalNumber(decimal: ratio).doubleValue.rounded())
+        return pct >= 5 ? pct : nil
     }
 
     // MARK: Compra
@@ -153,7 +181,7 @@ final class Suscripcion: ObservableObject {
 
             activo = true
             vence = t.expirationDate
-            if t.offerType == .introductory { prueba = true }
+            if t.offer?.type == .introductory { prueba = true }
         }
 
         suscrito = activo
@@ -172,3 +200,4 @@ final class Suscripcion: ObservableObject {
         }
     }
 }
+

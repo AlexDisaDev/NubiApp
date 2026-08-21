@@ -161,6 +161,10 @@ struct Ilus: View {
         case bascula, regla, jeringa, botiquin, calendario, cuaderno
         case candado, reloj, ondas, ajustes, estrella, lapiz, papelera
         case mas, cerrar, check, chevronDer, chevronIzq
+        case lunaOjoAbierto    
+        case gota, caquita   
+        case plato     
+        case pulgarArriba, pulgarAbajo                                   
     }
 
     let simbolo: Simbolo
@@ -295,6 +299,26 @@ struct Ilus: View {
                     )
                     .frame(width: 16, height: 16)
             )
+
+        case .lunaOjoAbierto:                                            
+            return AnyView(lunaOjoAbierto)  
+
+        case .gota:
+            return AnyView(FormaGota().frame(width: 14, height: 20))
+
+        case .caquita:
+            return AnyView(caquita)
+
+        case .plato:
+            return AnyView(plato)
+        
+        case .pulgarArriba:
+            return AnyView(pulgarArriba)
+
+        case .pulgarAbajo:
+            return AnyView(pulgarAbajo)
+            
+                                       
         }
     }
 
@@ -318,6 +342,33 @@ struct Ilus: View {
                     .frame(width: 16, height: 16)
                     .offset(x: 6, y: -4.5)
                     .blendMode(.destinationOut)
+            )
+            .compositingGroup()
+            .rotationEffect(.degrees(-12))
+    }
+
+    // ← NUEVO: luna creciente con un ojo abierto encima. El "blanco del ojo"
+    // es en realidad un hueco (destinationOut) que deja ver el fondo de la
+    // insignia (coral), y la pupila es un círculo pequeño del color del icono.
+    private var lunaOjoAbierto: some View {
+        Circle()
+            .frame(width: 19, height: 19)
+            .overlay(
+                Circle()
+                    .frame(width: 16, height: 16)
+                    .offset(x: 6, y: -4.5)
+                    .blendMode(.destinationOut)
+            )
+            .overlay(
+                Ellipse()
+                    .frame(width: 7, height: 4.2)
+                    .offset(x: -2.5, y: -0.5)
+                    .blendMode(.destinationOut)
+            )
+            .overlay(
+                Circle()
+                    .frame(width: 2.8, height: 2.8)
+                    .offset(x: -2.5, y: -0.5)
             )
             .compositingGroup()
             .rotationEffect(.degrees(-12))
@@ -449,6 +500,50 @@ struct Ilus: View {
         }
     }
 
+    // ← NUEVO: pulgar arriba (le gustó)
+    private var pulgarArriba: some View {
+        ZStack {
+            // Puño / mano cerrada
+            RoundedRectangle(cornerRadius: 2.5)
+                .frame(width: 9.5, height: 10.5)
+                .offset(x: -4, y: 4.5)
+            // Dedo pulgar hacia arriba
+            Capsule()
+                .frame(width: 6, height: 14)
+                .offset(x: 3.2, y: -2.5)
+                .rotationEffect(.degrees(-8))
+            // Separación entre puño y pulgar
+            Capsule()
+                .frame(width: 1.8, height: 7)
+                .offset(x: -0.5, y: 1)
+                .rotationEffect(.degrees(-8))
+                .blendMode(.destinationOut)
+        }
+        .compositingGroup()
+    }
+
+    // ← NUEVO: pulgar abajo (no le gustó)
+    private var pulgarAbajo: some View {
+        ZStack {
+            // Puño / mano cerrada (arriba)
+            RoundedRectangle(cornerRadius: 2.5)
+                .frame(width: 9.5, height: 10.5)
+                .offset(x: 4, y: -4.5)
+            // Dedo pulgar hacia abajo
+            Capsule()
+                .frame(width: 6, height: 14)
+                .offset(x: -3.2, y: 2.5)
+                .rotationEffect(.degrees(-8))
+            // Separación entre puño y pulgar
+            Capsule()
+                .frame(width: 1.8, height: 7)
+                .offset(x: 0.5, y: -1)
+                .rotationEffect(.degrees(-8))
+                .blendMode(.destinationOut)
+        }
+        .compositingGroup()
+    }
+
     // MARK: Diario y utilidades
 
     private var cuaderno: some View {
@@ -560,5 +655,61 @@ struct Ilus: View {
             Capsule().frame(width: 15, height: t).rotationEffect(.degrees(45))
             Capsule().frame(width: 15, height: t).rotationEffect(.degrees(-45))
         }
+    }
+
+    private var caquita: some View {
+        ZStack {
+            Ellipse().frame(width: 18, height: 8).offset(y: 6)
+            Ellipse().frame(width: 14, height: 7).offset(y: 0)
+            Ellipse().frame(width: 9, height: 5).offset(y: -5)
+        }
+        .compositingGroup()
+    }
+
+    private var plato: some View {
+        ZStack {
+            // Plato exterior
+            Circle()
+                .strokeBorder(lineWidth: t)
+                .frame(width: 21, height: 21)
+                .offset(y: 2)
+            // Base interior del plato
+            Circle()
+                .strokeBorder(lineWidth: t - 0.7)
+                .frame(width: 10.5, height: 10.5)
+                .offset(y: 2)
+            // Vapor saliendo de la comida
+            Capsule()
+                .frame(width: 1.6, height: 4)
+                .offset(x: -2, y: -8)
+                .rotationEffect(.degrees(-8))
+            Capsule()
+                .frame(width: 1.6, height: 5)
+                .offset(x: 1.8, y: -8.5)
+                .rotationEffect(.degrees(6))
+        }
+    }
+}
+
+// ← NUEVO: gota estilizada en estilo Nubi
+struct FormaGota: Shape {
+    func path(in r: CGRect) -> Path {
+        let w = r.width, h = r.height
+        var p = Path()
+        
+        p.move(to: CGPoint(x: w * 0.5, y: h * 0.05))
+        
+        p.addQuadCurve(
+            to: CGPoint(x: w * 0.5, y: h * 0.98),
+            control: CGPoint(x: w * 1.05, y: h * 0.55)
+        )
+        
+        p.addQuadCurve(
+            to: CGPoint(x: w * 0.5, y: h * 0.05),
+            control: CGPoint(x: -w * 0.05, y: h * 0.55)
+        )
+        
+        p.closeSubpath()
+        return p
     }
 }

@@ -1,5 +1,28 @@
+# macOS
 .DS_Store
+
+# Xcode
 xcuserdata/
 DerivedData/
 build/
 *.xcuserstate
+*.xcscmblueprint
+
+# Swift / Xcode
+*.xcuserdatad
+
+# Swift Package Manager
+.build/
+Packages/
+
+# Repomix
+repomix-output.xml
+repomix.txt
+
+# Node / Web
+node_modules/
+dist/
+build/
+.env
+.env.*
+!.env.example

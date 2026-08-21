@@ -50,7 +50,7 @@ enum Magnitud: String, CaseIterable, Identifiable {
 struct VistaCrecimiento: View {
     @EnvironmentObject private var almacen: Almacen
     @EnvironmentObject private var suscripcion: Suscripcion
-
+    //@EnvironmentObject private var l10n: L10n
     @State private var magnitud: Magnitud = .peso
     @State private var editando: Medida?
     @State private var mostrarPaywall = false

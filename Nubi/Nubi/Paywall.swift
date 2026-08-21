@@ -87,8 +87,8 @@ struct Paywall: View {
             ventaja(
                 .candado,
                 Theme.lila,
-                "Sin cuenta y sin servidor",
-                "Los datos de tu bebé no salen del iPhone. Nunca. Family Sharing incluido."
+                "Tus datos, solo tuyos",
+                "Se guardan en tu iPhone y en tu iCloud privado. Nunca en servidores de terceros. Family Sharing incluido."
             )
         }
     }
@@ -151,7 +151,20 @@ struct Paywall: View {
 
     private func tarjetaPlan(_ producto: Product) -> some View {
         let activo = seleccionado?.id == producto.id
-        let anual = producto.subscription?.subscriptionPeriod.unit == .year
+        // ← NUEVO: detecta el nombre del plan automáticamente
+        let nombrePlan: String = {
+            guard let sub = producto.subscription else { return "Nubi" }
+            switch sub.subscriptionPeriod.unit {
+            case .year:
+                return "Anual"
+            case .month:
+                return sub.subscriptionPeriod.value == 3 ? "Trimestral" : "Mensual"
+            case .week:
+                return "Semanal"
+            default:
+                return "Nubi"
+            }
+        }()
 
         return Button {
             withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
@@ -175,7 +188,7 @@ struct Paywall: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(anual ? "Anual" : "Mensual")
+                    Text(nombrePlan)  // ← CAMBIADO: antes era `anual ? "Anual" : "Mensual"`
                         .font(Theme.cuerpo(16, .semibold))
                         .foregroundStyle(Theme.tinta)
 
@@ -193,7 +206,7 @@ struct Paywall: View {
                         .font(Theme.display(19))
                         .foregroundStyle(Theme.tinta)
 
-                    if let ahorro = suscripcion.ahorroAnual(producto) {
+                    if let ahorro = suscripcion.ahorroAnual(producto) ?? suscripcion.ahorroTrimestral(producto) {
                         Text("AHORRAS \(ahorro) %")
                             .font(Theme.etiqueta)
                             .tracking(1.2)
@@ -282,8 +295,8 @@ struct Paywall: View {
             }
 
             HStack(spacing: 16) {
-                Link("Términos", destination: URL(string: "https://nubi.app/terminos")!)
-                Link("Privacidad", destination: URL(string: "https://nubi.app/privacidad")!)
+               Link("Términos", destination: URL(string: "https://appnubi.netlify.app/terminos")!)
+               Link("Privacidad", destination: URL(string: "https://appnubi.netlify.app/privacidad")!)
             }
             .font(Theme.cuerpo(12, .medium))
             .foregroundStyle(Theme.tintaSuave)

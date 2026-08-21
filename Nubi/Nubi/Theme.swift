@@ -20,6 +20,7 @@ enum Theme {
     static let cielo       = Color(light: 0xB7D4EF, dark: 0x8BB8DE)
     static let rosa        = Color(light: 0xEFC0D4, dark: 0xD99CB5)
     static let indigo      = Color(light: 0x6E63A6, dark: 0x9B8FD4)
+    static let coral       = Color(light: 0xE88B7B, dark: 0xD46B5A)   // ← NUEVO: rojo pastel para despertares
     
     // MARK: Sombras (adaptativas)
     static let sombra       = Color(light: 0x000000, dark: 0x000000, lightOpacity: 0.08, darkOpacity: 0.40)

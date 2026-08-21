@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "Alejandro Di Salvatore.disa.nubi",
+        "paths": [ "*", "/" ]
+      }
+    ]
+  }
+}

@@ -3,7 +3,7 @@ import SwiftUI
 struct VistaDiario: View {
     @EnvironmentObject private var almacen: Almacen
     @EnvironmentObject private var suscripcion: Suscripcion
-
+    //@EnvironmentObject private var l10n: L10n
     @State private var editando: EntradaDiario?
     @State private var soloHitos = false
     @State private var mostrarPaywall = false
@@ -49,7 +49,7 @@ struct VistaDiario: View {
                         )
                     }
                     if !soloHitos {
-                        Boton(titulo: "Escribir la primera", simbolo: .lapiz, color: Theme.lila) {
+                        Boton(titulo: "Escribe tu nota", simbolo: .lapiz, color: Theme.lila) {
                             nuevaEntrada()
                         }
                     }

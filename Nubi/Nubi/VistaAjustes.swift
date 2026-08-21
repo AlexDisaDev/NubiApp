@@ -1,10 +1,11 @@
 import SwiftUI
+import CloudKit
 
 struct VistaAjustes: View {
-
     @EnvironmentObject private var almacen: Almacen
     @EnvironmentObject private var suscripcion: Suscripcion
     @Environment(\.dismiss) private var cerrar
+    
 
     @AppStorage("paywall.mostradoTrasAlta") private var yaMostrado = false
     @AppStorage("idioma.nubi") private var idiomaRaw: String = IdiomaNubi.sistema.rawValue
@@ -22,8 +23,11 @@ struct VistaAjustes: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     tarjetaSuscripcion
-
                     tarjetaIdioma
+                    
+                    // iCloud y compartir
+                    TarjetaICloud()
+                    TarjetaCompartir()
 
                     if let bebe = almacen.bebe {
                         Tarjeta {
@@ -74,8 +78,10 @@ struct VistaAjustes: View {
                                 .fill(Theme.separador)
                                 .frame(height: 1)
 
-                            ShareLink(item: almacen.exportarCSV()) {
-                                filaEnlace(.cuaderno, "Exportar registros (CSV)", Theme.mantequilla)
+                            NavigationLink {
+                                VistaAtajosSiri()
+                            } label: {
+                                filaEnlace(.ondas, "Atajos de Siri", Theme.lila)
                             }
                             .buttonStyle(.plain)
 
@@ -83,7 +89,7 @@ struct VistaAjustes: View {
                                 .fill(Theme.separador)
                                 .frame(height: 1)
 
-                            Link(destination: URL(string: "https://nubi.app/privacidad")!) {
+                            Link(destination: URL(string: "https://appnubi.netlify.app/privacidad")!) {
                                 filaEnlace(.candado, "Política de privacidad", Theme.lila)
                             }
                             .buttonStyle(.plain)
@@ -92,7 +98,7 @@ struct VistaAjustes: View {
                                 .fill(Theme.separador)
                                 .frame(height: 1)
 
-                            Link(destination: URL(string: "https://nubi.app/terminos")!) {
+                            Link(destination: URL(string: "https://appnubi.netlify.app/terminos")!) {
                                 filaEnlace(.calendario, "Términos de uso", Theme.cielo)
                             }
                             .buttonStyle(.plain)
@@ -103,7 +109,7 @@ struct VistaAjustes: View {
                         VStack(alignment: .leading, spacing: 10) {
                             EtiquetaSeccion(texto: "Datos")
 
-                            Text("Todo se guarda solo en este iPhone. Si borras la app, se borran los datos.")
+                            Text("Tus datos viven en tu iPhone y en tu iCloud privado. Si borras la app, puedes recuperarlos al volver a instalarla con el mismo Apple ID.")
                                 .font(Theme.cuerpo(12))
                                 .foregroundStyle(Theme.tintaSuave)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -150,6 +156,14 @@ struct VistaAjustes: View {
                     HojaBebe(bebe: bebe)
                 }
             }
+            /*
+            BotonSecundario(titulo: "RECUPERACIÓN: subir mis datos al compartido", simbolo: .mas) {
+                Task { await almacen.forzarSubidaDeRecuperacion() }
+            }
+            BotonSecundario(titulo: "RECUPERACIÓN: bajar datos del compartido", simbolo: .nube) {
+                Task { await almacen.forzarBajadaDeRecuperacion() }
+            }
+            */
             .alert("¿Borrar todo?", isPresented: $confirmarBorrado) {
                 Button("Cancelar", role: .cancel) {}
 
@@ -228,48 +242,37 @@ struct VistaAjustes: View {
 
     private var tarjetaIdioma: some View {
         Tarjeta {
-            VStack(alignment: .leading, spacing: 14) {
-                EtiquetaSeccion(texto: "Idioma")
-
-                VStack(spacing: 0) {
-                    ForEach(IdiomaNubi.allCases) { idioma in
-                        Button {
-                                // Actualizar L10n inmediatamente para que se vea al instante
-                                L10n.idioma = idioma
-                                withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
-                                    idiomaRaw = idioma.rawValue
-                                }
-                            } label: {
-                            HStack(spacing: 12) {
-                                Text(idioma.nombre)
-                                    .font(
-                                        Theme.cuerpo(
-                                            15,
-                                            idiomaActual == idioma ? .semibold : .regular
-                                        )
-                                    )
-                                    .foregroundStyle(Theme.tinta)
-
-                                Spacer(minLength: 0)
-
-                                if idiomaActual == idioma {
-                                    Ilus(.check, 16, color: Theme.indigo)
-                                }
-                            }
-                            .padding(.vertical, 11)
-                            .contentShape(Rectangle())
+            VStack(alignment: .leading, spacing: 10) {
+                EtiquetaSeccion(texto: L10n.t("Idioma"))
+                Menu {
+                    Picker(L10n.t("Idioma"), selection: Binding(
+                        get: { idiomaActual },
+                        set: { nuevo in
+                            L10n.idioma = nuevo
+                            idiomaRaw = nuevo.rawValue
                         }
-                        .buttonStyle(.plain)
-
-                        if idioma != IdiomaNubi.allCases.last {
-                            Rectangle()
-                                .fill(Theme.separador)
-                                .frame(height: 1)
+                    )) {
+                        ForEach(IdiomaNubi.allCases) { idioma in
+                            Text(idioma.nombre).tag(idioma)
                         }
                     }
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "globe")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Theme.indigo)
+                            .frame(width: 34, height: 34)
+                            .background(Theme.cielo.opacity(0.3), in: Circle())
+                        Text(idiomaActual.nombre)
+                            .font(Theme.cuerpo(15, .semibold))
+                            .foregroundStyle(Theme.tinta)
+                        Spacer()
+                        Ilus(.chevronDer, 14, color: Theme.tintaTenue)
+                            .rotationEffect(.degrees(90))
+                    }
+                    .contentShape(Rectangle())
                 }
-
-                Text("Las fechas y los números siguen el idioma elegido. Los textos de la app se traducirán progresivamente.")
+                Text(L10n.t("Elige tu idioma"))
                     .font(Theme.cuerpo(11))
                     .foregroundStyle(Theme.tintaTenue)
                     .fixedSize(horizontal: false, vertical: true)
@@ -316,10 +319,8 @@ struct VistaAjustes: View {
 // MARK: - Editar bebé
 
 struct HojaBebe: View {
-
     @EnvironmentObject private var almacen: Almacen
     @Environment(\.dismiss) private var cerrar
-
     @State var bebe: Bebe
 
     var body: some View {
@@ -394,7 +395,6 @@ struct HojaBebe: View {
 // MARK: - Sueño seguro
 
 struct VistaSueñoSeguro: View {
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -419,5 +419,48 @@ Consulta siempre las guías de tu pediatra o de la sociedad de pediatría de tu 
         }
         .background(Theme.lienzo.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Tarjeta de copia de seguridad en iCloud (100% automática)
+
+struct TarjetaICloud: View {
+    @ObservedObject private var sync = Sincronizador.compartido
+
+    var body: some View {
+        Tarjeta {
+            HStack(alignment: .top, spacing: 12) {
+                Insignia(simbolo: .nube, fondo: Theme.cielo, diametro: 34)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Copia de seguridad en iCloud")
+                        .font(Theme.cuerpo(15, .semibold))
+                        .foregroundStyle(Theme.tinta)
+
+                    Text(subtitulo)
+                        .font(Theme.cuerpo(12))
+                        .foregroundStyle(Theme.tintaSuave)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 0)
+
+                if sync.sincronizando { ProgressView() }
+            }
+        }
+        .task { await sync.refrescarEstado() }
+    }
+
+    private var subtitulo: String {
+        if let e = sync.ultimoError {
+            return " \(e)"
+        }
+        if !sync.disponible {
+            return " \(sync.estadoCuenta)"
+        }
+        if let ultima = sync.ultimaSync {
+            return "Automática: cada cambio se guarda en tu iCloud privado. Última copia: \(Fmt.hora(ultima))."
+        }
+        return "Automática: cada cambio se guarda en tu iCloud privado. Si cambias de móvil, vuelven solos."
     }
 }

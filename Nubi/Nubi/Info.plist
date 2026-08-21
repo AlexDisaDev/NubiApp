@@ -2,7 +2,37 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>app.nubi.url</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>nubi</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>EmpezarNocheIntent</string>
+		<string>TerminarNocheIntent</string>
+		<string>EmpezarSiestaIntent</string>
+		<string>TerminarSiestaIntent</string>
+		<string>RegistrarBiberonIntent</string>
+		<string>EmpezarPechoIntent</string>
+		<string>CambiarPechoIntent</string>
+		<string>TerminarPechoIntent</string>
+		<string>RegistrarPanalIntent</string>
+		<string>RegistrarDespertarIntent</string>
+		<string>IniciarRuidoIntent</string>
+		<string>PararRuidoIntent</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 </dict>
 </plist>
